@@ -62,127 +62,184 @@ void File_Input()
 
 __global__ void patternBarching(const int* d_datainp, const int l, const int d, int *ans) {
 	int index = blockDim.x * blockIdx.x + threadIdx.x;
-	if (index < 600 - l) {
-		//khai bao bien
-		int motif_temp[40];
-		int temp_val;
-		int temp_dis;
-		int best_dis = 99999;
-		int motif_bN[40];
-		int score_motif;
-		int s1[40];
 
-		//lay chuoi can duyet
+	if (index < 600 - l) {
+
+		int ansMotif_sorce = 999;// motif tra ra
+		int ansMotif_string[40];//motif tra ra
+
+		int motif_NeSorce = 999;//kq tra ve ham NE
+		int motif_NeString[40];//kq tra ve ham NE
+		int temp_Sorce = 999;
+		int temp_Str[40];
+
+		//cat chuoi motif
 		for (int i = 0; i < l; ++i) {
-			motif_temp[i] = d_datainp[i + index];
-			motif_bN[i] = motif_temp[i];
-			s1[i] = motif_temp[i];
+			ansMotif_string[i] = d_datainp[i + index];
+			motif_NeString[i] = ansMotif_string[i];
 		}
-		//ham dis_hamming
-		int ans_Ham = 0;
-		int temp, tempRow;
+		//begin tinh hamming
+		int tempRow, tempSubRow;
 		for (int i = 0; i < 20; ++i)
 		{
 			tempRow = 999;
 			for (int j = i * 600; j < (i + 1) * 600 - l; ++j)
 			{
-				temp = 0;
+				tempSubRow = 0;
 				for (int k = 0; k < l; k++) {
-					if (s1[k] != d_datainp[k + j]) temp++;
+					if (ansMotif_string[k] != d_datainp[k + j]) tempSubRow++;
 				}
-				if (temp < tempRow) tempRow = temp;
+				if (tempSubRow < tempRow) tempRow = tempSubRow;
 			}
-			ans_Ham += tempRow;
+			ansMotif_sorce += tempRow;
 		}
-		int sorce_Hamming = ans_Ham;
-		//End ham hamming
+		//end tinh hamming cho chuoi vao
 
-		//chay ham patternBarching
-		for (int k = 0; k < d; ++k) {
-			//kiem tra chuoi tot
-			//printf("\n 2 \n");
-			if (best_dis < score_motif) {
-				score_motif = best_dis;
+		//begin tinh pattern branching
+		for (int a = 0; a <= d; a++) {
+			//kiem tra motif dis
+			if (motif_NeSorce < ansMotif_sorce) {
+				ansMotif_sorce = motif_NeSorce;
 				for (int i = 0; i < l; ++i) {
-					motif_temp[i] = motif_bN[i];
+					ansMotif_string[i] = motif_NeString[i];
+					temp_Str[i] = motif_NeString[i];
 				}
 			}
-			//ham bestNeighbor
-			//printf("\nbestNeighbor\n");
-			for (int i = 0; i < l; ++i) {
-				//printf("\n 3 \n");
-				//trg hop 0
-				if (motif_temp[i] != 0) {
-					temp_val = motif_temp[i];
-					motif_temp[i] = 0;
-					//temp_dis = dis_haming(d_datainp, motif_temp, l);
-					//lay best neighbor
-					if (temp_dis < best_dis)
-					{
-						best_dis = temp_dis;
-						for (int j = 0; j < l; ++j) {
-							motif_bN[j] = motif_temp[j];
-						}
-					}
-					motif_temp[i] = temp_val;
+			else
+			{//gan bien Ham Ne
+				for (int i = 0; i < l; ++i) {
+					temp_Str[i] = ansMotif_string[i];
 				}
-				//trg hop 1
-				if (motif_temp[i] != 1) {
-					temp_val = motif_temp[i];
-					motif_temp[i] = 1;
-					//temp_dis = dis_haming(d_datainp, motif_temp, l);
-					//lay best neighbor
-					if (temp_dis < best_dis)
+			}//end kiem tra motif
+
+			//begin ham bestNeighbor
+			int change = -1;
+			for (int b = 0; b < l; ++b) {
+				//trg hop 0 A
+				if (temp_Str[b] != 0) {
+					change = temp_Str[b];
+					temp_Str[b] = 0;
+					temp_Sorce = 0;//diem dis
+					//begin tinh hamming
+					for (int i = 0; i < 20; ++i)
 					{
-						best_dis = temp_dis;
-						for (int j = 0; j < l; ++j) {
-							motif_bN[j] = motif_temp[j];
+						tempRow = 999;
+						for (int j = i * 600; j < (i + 1) * 600 - l; ++j)
+						{
+							tempSubRow = 0;
+							for (int k = 0; k < l; k++) {
+								if (ansMotif_string[k] != d_datainp[k + j]) tempSubRow++;
+							}
+							if (tempSubRow < tempRow) tempRow = tempSubRow;
+						}
+						temp_Sorce += tempRow;
+					}
+					//end tinh hamming cho chuoi vao
+					//kiem tra dis motif Ne
+					if (temp_Sorce < motif_NeSorce) {
+						motif_NeSorce = temp_Sorce;
+						for (int c = 0; c < l; ++c) {
+							motif_NeString[c] = temp_Str[c];
 						}
 					}
-					motif_temp[i] = temp_val;
+					temp_Str[b] = change;//tra lai gia tri ban dau
 				}
-				//trg hop 2
-				if (motif_temp[i] != 2) {
-					temp_val = motif_temp[i];
-					motif_temp[i] = 2;
-					//temp_dis = dis_haming(d_datainp, motif_temp, l);
-					//lay best neighbor
-					if (temp_dis < best_dis)
+				//trg hop 1 C
+				if (temp_Str[b] != 1) {
+					change = temp_Str[b];
+					temp_Str[b] = 1;
+					temp_Sorce = 0;//diem dis
+					//begin tinh hamming
+					for (int i = 0; i < 20; ++i)
 					{
-						best_dis = temp_dis;
-						for (int j = 0; j < l; ++j) {
-							motif_bN[j] = motif_temp[j];
+						tempRow = 999;
+						for (int j = i * 600; j < (i + 1) * 600 - l; ++j)
+						{
+							tempSubRow = 0;
+							for (int k = 0; k < l; k++) {
+								if (ansMotif_string[k] != d_datainp[k + j]) tempSubRow++;
+							}
+							if (tempSubRow < tempRow) tempRow = tempSubRow;
+						}
+						temp_Sorce += tempRow;
+					}
+					//end tinh hamming cho chuoi vao
+					//kiem tra dis motif Ne
+					if (temp_Sorce < motif_NeSorce) {
+						motif_NeSorce = temp_Sorce;
+						for (int c = 0; c < l; ++c) {
+							motif_NeString[c] = temp_Str[c];
 						}
 					}
-					motif_temp[i] = temp_val;
+					temp_Str[b] = change;
 				}
-				//trg hop 3
-				if (motif_temp[i] != 3) {
-					temp_val = motif_temp[i];
-					motif_temp[i] = 3;
-					//temp_dis = dis_haming(d_datainp, motif_temp, l);
-					//lay best neighbor
-					if (temp_dis < best_dis)
+				//trg hop 2 G
+				if (temp_Str[b] != 2) {
+					change = temp_Str[b];
+					temp_Str[b] = 2;
+					temp_Sorce = 0;//diem dis
+								   //begin tinh hamming
+					for (int i = 0; i < 20; ++i)
 					{
-						best_dis = temp_dis;
-						for (int j = 0; j < l; ++j) {
-							motif_bN[j] = motif_temp[j];
+						tempRow = 999;
+						for (int j = i * 600; j < (i + 1) * 600 - l; ++j)
+						{
+							tempSubRow = 0;
+							for (int k = 0; k < l; k++) {
+								if (ansMotif_string[k] != d_datainp[k + j]) tempSubRow++;
+							}
+							if (tempSubRow < tempRow) tempRow = tempSubRow;
+						}
+						temp_Sorce += tempRow;
+					}
+					//end tinh hamming cho chuoi vao
+					//kiem tra dis motif Ne
+					if (temp_Sorce < motif_NeSorce) {
+						motif_NeSorce = temp_Sorce;
+						for (int c = 0; c < l; ++c) {
+							motif_NeString[c] = temp_Str[c];
 						}
 					}
-					motif_temp[i] = temp_val;
+					temp_Str[b] = change;
+				}
+				//trg hop 3 T
+				if (temp_Str[b] != 3) {
+					change = temp_Str[b];
+					temp_Str[b] = 3;
+					temp_Sorce = 0;//diem dis
+								   //begin tinh hamming
+					for (int i = 0; i < 20; ++i)
+					{
+						tempRow = 999;
+						for (int j = i * 600; j < (i + 1) * 600 - l; ++j)
+						{
+							tempSubRow = 0;
+							for (int k = 0; k < l; k++) {
+								if (ansMotif_string[k] != d_datainp[k + j]) tempSubRow++;
+							}
+							if (tempSubRow < tempRow) tempRow = tempSubRow;
+						}
+						temp_Sorce += tempRow;
+					}
+					//end tinh hamming cho chuoi vao
+					//kiem tra dis motif Ne
+					if (temp_Sorce < motif_NeSorce) {
+						motif_NeSorce = temp_Sorce;
+						for (int c = 0; c < l; ++c) {
+							motif_NeString[c] = temp_Str[c];
+						}
+					}
+					temp_Str[b] = change;
 				}
 			}
-			// END ham bestNeighbor
-		}
-		//printf("\n 4 \n");
-		//du lieu tra lai
-		//printf("\n gan du lieu vao d_motif \n");
-		//End ham
+		}//end Ne
+		//end tinh
 	}
 }
 
 int main()
 {
-	File_Input();
+	printf("ggg\n");
+	//File_Input();
 	return 0;
 }
