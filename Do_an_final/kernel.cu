@@ -345,9 +345,10 @@ int main()
 	best_motif.dis = 999;
 	for (int i = 0; i < 600; i++)
 	{
-		int chuyenStr = d_dataOut[i];
+		int chuyenStr = h_dataOut[i];
 		int k = 0;
 		string res = "";
+		cout << chuyenStr << endl;
 		if (chuyenStr > 0) {
 			//chuyen kieu in sang string
 			for (int j = 0; j < l; ++j) {
@@ -377,21 +378,21 @@ int main()
 			//ket thuc chuyen
 			//kiem tra do dai va tra vi tri
 			cout << res << endl;
-			//temp_motif_return = dis_hamming(res);
-			//if (temp_motif_return.dis < best_motif.dis) {
-			//	best_motif.dis = temp_motif_return.dis;
-			//	best_motif.motif = temp_motif_return.motif;
-			//	for (int z = 0; z < 20; ++z) {
-			//		best_motif.adress[z] = temp_motif_return.adress[z];
-			//	}
-			//}
+			temp_motif_return = dis_hamming(res);
+			if (temp_motif_return.dis < best_motif.dis) {
+				best_motif.dis = temp_motif_return.dis;
+				best_motif.motif = temp_motif_return.motif;
+				for (int z = 0; z < 20; ++z) {
+					best_motif.adress[z] = temp_motif_return.adress[z];
+				}
+			}
 			//end kiem tra
 		}
 	}
-	/*fo << "Best motif: " << best_motif.motif << endl << "Motif location: " << endl;
+	fo << "Best motif: " << best_motif.motif << endl << "Motif location: " << endl;
 	for (int z = 0; z < 20; ++z) {
 		fo << best_motif.adress[z] << ' ';
-	}*/
+	}
 	fo << "\nTime " << clock() / (double)1000 << " Sec";
 
 	cudaFree(d_dataMotif);
