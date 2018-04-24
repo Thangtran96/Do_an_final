@@ -22,7 +22,7 @@ const int ARRAY_SIZE_OUT = 605;
 const int ARRAY_BYTES_OUT = ARRAY_SIZE_OUT * sizeof(int);
 
 //cac bien chinh
-int l = 9, d = 3;
+int l = 9, d = 2;
 char cDataInp[ARRAY_SIZE_INP];
 int h_dataMotif[ARRAY_SIZE_INP];
 string sDataInp[20];
@@ -108,7 +108,7 @@ __global__ void patternBarching(const int* d_datainp, const int l, const int d, 
 	int index = blockDim.x * blockIdx.x + threadIdx.x;
 
 	if (index < 600 - l) {
-
+		//printf("\n %d", index);
 		int ansMotif_sorce = 999;// motif tra ra
 		int ansMotif_string[40];//motif tra ra
 
@@ -172,7 +172,7 @@ __global__ void patternBarching(const int* d_datainp, const int l, const int d, 
 						{
 							tempSubRow = 0;
 							for (int k = 0; k < l; k++) {
-								if (ansMotif_string[k] != d_datainp[k + j]) tempSubRow++;
+								if (temp_Str[k] != d_datainp[k + j]) tempSubRow++;
 							}
 							if (tempSubRow < tempRow) tempRow = tempSubRow;
 						}
@@ -201,7 +201,7 @@ __global__ void patternBarching(const int* d_datainp, const int l, const int d, 
 						{
 							tempSubRow = 0;
 							for (int k = 0; k < l; k++) {
-								if (ansMotif_string[k] != d_datainp[k + j]) tempSubRow++;
+								if (temp_Str[k] != d_datainp[k + j]) tempSubRow++;
 							}
 							if (tempSubRow < tempRow) tempRow = tempSubRow;
 						}
@@ -230,7 +230,7 @@ __global__ void patternBarching(const int* d_datainp, const int l, const int d, 
 						{
 							tempSubRow = 0;
 							for (int k = 0; k < l; k++) {
-								if (ansMotif_string[k] != d_datainp[k + j]) tempSubRow++;
+								if (temp_Str[k] != d_datainp[k + j]) tempSubRow++;
 							}
 							if (tempSubRow < tempRow) tempRow = tempSubRow;
 						}
@@ -259,7 +259,7 @@ __global__ void patternBarching(const int* d_datainp, const int l, const int d, 
 						{
 							tempSubRow = 0;
 							for (int k = 0; k < l; k++) {
-								if (ansMotif_string[k] != d_datainp[k + j]) tempSubRow++;
+								if (temp_Str[k] != d_datainp[k + j]) tempSubRow++;
 							}
 							if (tempSubRow < tempRow) tempRow = tempSubRow;
 						}
@@ -284,6 +284,7 @@ __global__ void patternBarching(const int* d_datainp, const int l, const int d, 
 		for (int i = 0; i < l; ++i) {
 			res = res | (ansMotif_string[i] << dem);
 			dem += 2;
+			if (index == 574) printf("%d ", ansMotif_string[i]);
 		}
 		ans[index] = res;
 	}
@@ -293,6 +294,14 @@ __global__ void patternBarching(const int* d_datainp, const int l, const int d, 
 int main()
 {
 	File_Input();
+
+	//test
+	string test = "GTTCGGCGT";
+	Motif_Ans testMoitf = dis_hamming(test);
+	fo << testMoitf.dis << endl;
+	cout<<sDataInp[0].substr(574, l) << endl;
+	cout << h_dataMotif[574] << endl;
+	//end test
 	int h_dataOut[ARRAY_SIZE_OUT];
 	for (int i = 0; i < 600; ++i) {
 		h_dataOut[i] = -1;
@@ -321,16 +330,15 @@ int main()
 		cudaFree(d_dataOut);
 		return 0;
 	}
-	//clock_t t = clock();
+
 	cout << "dang chay ...." << endl;
 
 	//khoi tao chay cuda
 	int threadsPerBlock = 256;
 	int blocksPerGrid = (600 + threadsPerBlock - 1) / threadsPerBlock;
-	patternBarching << <blocksPerGrid, threadsPerBlock >> > (d_dataMotif, l, d, d_dataOut);
-	//t = clock() - t;
-	//fo << "Thoi gian chay: " << clock()-t/ CLOCKS_PER_SEC << endl;
-	//cout << "\nTime " << clock() / (double)1000 << " Sec";
+	patternBarching <<<blocksPerGrid, threadsPerBlock >>> (d_dataMotif, l, d, d_dataOut);
+
+	fo << "\nTime " << clock() / (double)1000 << " Sec" << endl;
 
 	//copy data tro ve
 	if (cudaMemcpy(h_dataOut, d_dataOut, ARRAY_BYTES_OUT, cudaMemcpyDeviceToHost) != cudaSuccess) {
@@ -348,8 +356,8 @@ int main()
 		int chuyenStr = h_dataOut[i];
 		int k = 0;
 		string res = "";
-		cout << chuyenStr << endl;
-		if (chuyenStr > 0) {
+		//cout << chuyenStr << endl;
+		if (chuyenStr != -1) {
 			//chuyen kieu in sang string
 			for (int j = 0; j < l; ++j) {
 				int temp = (chuyenStr >> k) & 3;
@@ -375,11 +383,12 @@ int main()
 				}
 				k += 2;
 			}
+			if (i == 574) fo << res << endl;
 			//ket thuc chuyen
 			//kiem tra do dai va tra vi tri
-			cout << res << endl;
 			temp_motif_return = dis_hamming(res);
 			if (temp_motif_return.dis < best_motif.dis) {
+				cout << "thay doi best" << endl;
 				best_motif.dis = temp_motif_return.dis;
 				best_motif.motif = temp_motif_return.motif;
 				for (int z = 0; z < 20; ++z) {
@@ -387,13 +396,19 @@ int main()
 				}
 			}
 			//end kiem tra
+			cout << "------------" << endl;
+			cout << temp_motif_return.motif << endl;
+			cout << temp_motif_return.dis << endl;
+			cout << best_motif.motif << endl;
+			cout << best_motif.dis << endl;
+			cout << "+++++++++++++" << endl;
 		}
 	}
 	fo << "Best motif: " << best_motif.motif << endl << "Motif location: " << endl;
 	for (int z = 0; z < 20; ++z) {
 		fo << best_motif.adress[z] << ' ';
 	}
-	fo << "\nTime " << clock() / (double)1000 << " Sec";
+	cout << "xong" << endl;
 
 	cudaFree(d_dataMotif);
 	cudaFree(d_dataOut);
