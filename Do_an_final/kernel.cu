@@ -296,11 +296,11 @@ int main()
 	File_Input();
 
 	//test
-	string test = "GTTCGGCGT";
+	/*string test = "GTTCGGCGT";
 	Motif_Ans testMoitf = dis_hamming(test);
 	fo << testMoitf.dis << endl;
 	cout<<sDataInp[0].substr(574, l) << endl;
-	cout << h_dataMotif[574] << endl;
+	cout << h_dataMotif[574] << endl;*/
 	//end test
 	int h_dataOut[ARRAY_SIZE_OUT];
 	for (int i = 0; i < 600; ++i) {
