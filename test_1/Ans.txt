@@ -1,0 +1,6 @@
+
+Time 0.763 Sec
+Sroce: 15Best motif: GTTCAGCGT
+Motif location: 
+575 78 406 315 1 300 63 476 176 380 339 66 286 145 403 92 592 421 220 472 
+End Time 16.312 Sec
