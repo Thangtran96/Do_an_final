@@ -383,7 +383,7 @@ int main()
 				}
 				k += 2;
 			}
-			if (i == 574) fo << res << endl;
+			//if (i == 574) fo << res << endl;
 			//ket thuc chuyen
 			//kiem tra do dai va tra vi tri
 			temp_motif_return = dis_hamming(res);
@@ -409,7 +409,7 @@ int main()
 		fo << best_motif.adress[z] << ' ';
 	}
 	cout << "xong" << endl;
-
+	fo << "\nEnd Time " << clock() / (double)1000 << " Sec" << endl;
 	cudaFree(d_dataMotif);
 	cudaFree(d_dataOut);
 	return 0;
